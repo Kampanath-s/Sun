@@ -1,0 +1,9 @@
+node_modules
+.evershop
+.log
+media/*
+!media/.gitkeep
+evershop.log
+.env
+config/local.json
+dist

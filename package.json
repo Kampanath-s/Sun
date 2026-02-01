@@ -1,0 +1,21 @@
+{
+  "name": "my-evershop",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "setup": "evershop install",
+    "build": "evershop build",
+    "start": "evershop start",
+    "seed": "evershop seed",
+    "start:debug": "evershop start --debug",
+    "user:create": "evershop user:create",
+    "user:changePassword": "evershop user:changePassword"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@evershop/evershop": "^2.1.1"
+  }
+}
