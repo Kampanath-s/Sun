@@ -1,10 +1,10 @@
 {
   "database": {
-    "host": "localhost",
-    "port": 5432,
-    "database": "evershop",
-    "user": "postgres",
-    "password": "postgres",
+    "host": "${PGHOST:-localhost}",
+    "port": "${PGPORT:-5432}",
+    "database": "${PGDATABASE:-evershop}",
+    "user": "${PGUSER:-postgres}",
+    "password": "${PGPASSWORD:-postgres}",
     "ssl": false
   }
 }
