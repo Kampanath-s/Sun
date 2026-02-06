@@ -7,8 +7,8 @@ RUN npm install
 
 COPY . .
 
-# ปิด SSL สำหรับการเชื่อมต่อฐานข้อมูลภายใน Cloud Run (ถ้าจำเป็น)
-RUN mkdir -p config && echo '{"database": {"ssl": false}}' > config/production.json
+# ตั้งค่า SSL สำหรับการเชื่อมต่อฐานข้อมูล Railway PostgreSQL
+RUN mkdir -p config && echo '{"database": {"ssl": {"rejectUnauthorized": false}}}' > config/production.json
 
 RUN npm run build
 
@@ -18,22 +18,25 @@ EXPOSE 3000
 RUN echo '#!/bin/bash\n\
 set -e\n\
 \n\
-echo "Starting EverShop initialization..."\n\
+echo "=== Starting EverShop initialization ==="\n\
 echo "Database Host: $PGHOST"\n\
 echo "Database Port: $PGPORT"\n\
 echo "Database Name: $PGDATABASE"\n\
 echo "Database User: $PGUSER"\n\
+echo "Database SSL: enabled with rejectUnauthorized=false"\n\
 \n\
 # ตรวจสอบว่าฐานข้อมูลได้ติดตั้งแล้วหรือไม่\n\
-if ! npm run seed 2>/dev/null; then\n\
-  echo "Setting up database..."\n\
-  npm run setup || true\n\
+echo "Attempting to seed database..."\n\
+if ! npm run seed 2>&1; then\n\
+  echo "Seed failed, attempting setup..."\n\
+  npm run setup 2>&1 || echo "Setup failed, continuing..."\n\
 fi\n\
 \n\
 # สร้างบัญชี Admin ถ้ายังไม่มี\n\
 echo "Creating admin user..."\n\
-npm run user:create -- -n "Admin User" -e "admin@admin.com" -p "password123" 2>&1 || echo "Admin user already exists or error occurred"\n\
+npm run user:create -- -n "Admin User" -e "admin@admin.com" -p "password123" 2>&1 || echo "Admin user creation failed or already exists"\n\
 \n\
+echo "=== EverShop initialization complete ==="\n\
 echo "Starting EverShop server..."\n\
 npm run start\n\
 ' > /app/start.sh && chmod +x /app/start.sh
