@@ -7,8 +7,8 @@ RUN npm install
 
 COPY . .
 
-# ตั้งค่า SSL สำหรับการเชื่อมต่อฐานข้อมูล Railway PostgreSQL
-RUN mkdir -p config && echo '{"database": {"ssl": {"rejectUnauthorized": false}}}' > config/production.json
+# ปิด SSL สำหรับการเชื่อมต่อฐานข้อมูล Railway PostgreSQL
+RUN mkdir -p config && echo '{"database": {"ssl": false}}' > config/production.json
 
 RUN npm run build
 
@@ -23,7 +23,7 @@ echo "Database Host: $PGHOST"\n\
 echo "Database Port: $PGPORT"\n\
 echo "Database Name: $PGDATABASE"\n\
 echo "Database User: $PGUSER"\n\
-echo "Database SSL: enabled with rejectUnauthorized=false"\n\
+echo "Database SSL: disabled"\n\
 \n\
 # ตรวจสอบว่าฐานข้อมูลได้ติดตั้งแล้วหรือไม่\n\
 echo "Attempting to seed database..."\n\
