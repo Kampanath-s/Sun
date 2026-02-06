@@ -7,9 +7,6 @@ RUN npm install
 
 COPY . .
 
-# ตั้งค่า SSL สำหรับการเชื่อมต่อฐานข้อมูล Railway PostgreSQL
-RUN mkdir -p config && echo '{"database": {"ssl": {"rejectUnauthorized": false}}}' > config/production.json
-
 RUN npm run build
 
 EXPOSE 3000
@@ -23,7 +20,26 @@ echo "Database Host: $PGHOST"\n\
 echo "Database Port: $PGPORT"\n\
 echo "Database Name: $PGDATABASE"\n\
 echo "Database User: $PGUSER"\n\
-echo "Database SSL: enabled with rejectUnauthorized=false"\n\
+\n\
+# สร้างไฟล์ config/production.json ใหม่จาก environment variables\n\
+mkdir -p config\n\
+cat > config/production.json << EOF\n\
+{\n\
+  "database": {\n\
+    "host": "$PGHOST",\n\
+    "port": $PGPORT,\n\
+    "database": "$PGDATABASE",\n\
+    "user": "$PGUSER",\n\
+    "password": "$PGPASSWORD",\n\
+    "ssl": {\n\
+      "rejectUnauthorized": false\n\
+    }\n\
+  }\n\
+}\n\
+EOF\n\
+\n\
+echo "Database config created:"\n\
+cat config/production.json\n\
 \n\
 # ตรวจสอบว่าฐานข้อมูลได้ติดตั้งแล้วหรือไม่\n\
 echo "Attempting to seed database..."\n\
