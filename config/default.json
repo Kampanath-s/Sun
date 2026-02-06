@@ -5,6 +5,9 @@
     "database": "${PGDATABASE:-evershop}",
     "user": "${PGUSER:-postgres}",
     "password": "${PGPASSWORD:-postgres}",
-    "ssl": "require"
+    "ssl": {
+      "rejectUnauthorized": false,
+      "sslmode": "require"
+    }
   }
 }
