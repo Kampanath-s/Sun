@@ -11,5 +11,5 @@ RUN npm run build
 
 EXPOSE 3000
 
-# ใช้ node_modules/.bin/evershop start แบบ daemon
-CMD ["node_modules/.bin/evershop", "start"]
+# ใช้ evershop start --debug เพื่อดูข้อมูล debug
+CMD ["npm", "run", "start:debug"]
