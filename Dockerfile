@@ -11,4 +11,5 @@ RUN npm run build
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start"]
+# ใช้ node_modules/.bin/evershop start แบบ daemon
+CMD ["node_modules/.bin/evershop", "start"]
