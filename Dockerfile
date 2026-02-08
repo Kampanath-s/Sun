@@ -16,11 +16,7 @@ ENV NODE_ENV=production
 # รัน Build
 RUN npm run build
 
-# ตรวจสอบว่า Railway มีตัวแปรเหล่านี้ให้
-# เราจะใช้ค่า default จาก Railway environment variables โดยตรงในแอป
-# EverShop จะอ่านจาก config/default.json ซึ่งเราตั้งค่าให้อ่านจาก ENV แล้ว
-
 EXPOSE 3000
 
-# ใช้ shell form เพื่อให้สามารถอ่าน Environment Variables ได้ถูกต้อง
-CMD npm run start
+# ใช้ exec form เพื่อให้ Process ได้รับ SIGTERM อย่างถูกต้อง
+ENTRYPOINT ["npm", "run", "start"]
