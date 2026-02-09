@@ -1,34 +1,38 @@
 #!/bin/sh
 
-echo "=== Starting EverShop Entrypoint Script ==="
+echo "=== Starting EverShop Entrypoint Script (v4) ==="
 
-# แสดงค่าตัวแปรสภาพแวดล้อมที่สำคัญ (ซ่อนรหัสผ่าน)
-echo "Database Host: $PGHOST"
-echo "Database Port: $PGPORT"
-echo "Database Name: $PGDATABASE"
-echo "Database User: $PGUSER"
+# ตรวจสอบว่า DATABASE_URL มีค่าหรือไม่
+if [ -z "$DATABASE_URL" ]; then
+  echo "Error: DATABASE_URL is not set. Please check Railway environment variables."
+  # สร้าง DATABASE_URL จากตัวแปรแยก (ถ้ามี)
+  export DATABASE_URL="postgres://$PGUSER:$PGPASSWORD@$PGHOST:$PGPORT/$PGDATABASE"
+  echo "Generated DATABASE_URL from components."
+fi
 
-# ตรวจสอบว่าฐานข้อมูลพร้อมใช้งานหรือไม่
-echo "Waiting for database to be ready at $PGHOST:$PGPORT..."
-until nc -z -v -w30 $PGHOST $PGPORT; do
+# ตรวจสอบความพร้อมของฐานข้อมูล (สกัด Host และ Port จาก URL)
+DB_HOST=$(echo $DATABASE_URL | sed -e 's|.*@||' -e 's|/.*||' -e 's|:.*||')
+DB_PORT=$(echo $DATABASE_URL | sed -e 's|.*:||' -e 's|/.*||')
+[ -z "$DB_PORT" ] && DB_PORT=5432
+
+echo "Waiting for database at $DB_HOST:$DB_PORT..."
+until nc -z -v -w30 $DB_HOST $DB_PORT; do
   echo "Database is unavailable - sleeping"
   sleep 2
 done
 echo "Database is up!"
 
-# ในรอบนี้เราจะบังคับให้รัน install เพื่อให้แน่ใจว่า schema ถูกต้อง
-echo "Running evershop install..."
-npx evershop install || echo "Install might have skipped some steps, continuing..."
+# ตั้งค่าให้ Node.js ยอมรับ Unauthorized SSL (สำคัญมากสำหรับ Railway PostgreSQL)
+export NODE_TLS_REJECT_UNAUTHORIZED=0
 
-# รัน Build เพื่อความชัวร์
+echo "Running evershop install..."
+npx evershop install || echo "Install skipped or already done."
+
 echo "Running evershop build..."
 npx evershop build
 
-# พยายามสร้าง Admin User
-# เราจะใช้คำสั่ง user:create และไม่สนใจถ้ามันมีอยู่แล้ว
-echo "Creating admin user: admin@admin.com / password123"
-npx evershop user:create -n "Admin" -e "admin@admin.com" -p "password123" || echo "User creation finished (might already exist)."
+echo "Ensuring admin user: admin@admin.com / password123"
+npx evershop user:create -n "Admin" -e "admin@admin.com" -p "password123" || echo "User creation finished."
 
-# เริ่มแอปพลิเคชัน
 echo "Starting EverShop server on port $PORT..."
 exec npm run start

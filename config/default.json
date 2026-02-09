@@ -1,10 +1,9 @@
 {
   "db": {
-    "host": "${PGHOST:-localhost}",
-    "port": "${PGPORT:-5432}",
-    "database": "${PGDATABASE:-evershop}",
-    "user": "${PGUSER:-postgres}",
-    "password": "${PGPASSWORD:-postgres}",
-    "ssl": false
+    "driver": "postgres",
+    "connectionString": "${DATABASE_URL}",
+    "ssl": {
+      "rejectUnauthorized": false
+    }
   }
 }
