@@ -5,5 +5,15 @@
     "ssl": {
       "rejectUnauthorized": false
     }
+  },
+  "system": {
+    "jwtSecret": "${JWT_SECRET:-super-secret-key-12345}"
+  },
+  "shop": {
+    "cookie": {
+      "secure": true,
+      "httpOnly": true,
+      "sameSite": "lax"
+    }
   }
 }
