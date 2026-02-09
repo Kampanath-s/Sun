@@ -1,8 +1,8 @@
 #!/bin/sh
 
-echo "=== Starting EverShop Entrypoint Script (v6 - Final Force) ==="
+echo "=== EverShop Final Check Entrypoint ==="
 
-# บังคับค่า JWT_SECRET ในระดับ OS เพื่อให้แอปเห็นแน่นอน
+# บังคับค่า JWT_SECRET ในระดับ OS
 export JWT_SECRET="ever-shop-stable-secret-key-2026-manus"
 export NODE_TLS_REJECT_UNAUTHORIZED=0
 
@@ -15,18 +15,21 @@ fi
 DB_HOST=$(echo $DATABASE_URL | sed -e 's|.*@||' -e 's|/.*||' -e 's|:.*||')
 DB_PORT=$(echo $DATABASE_URL | sed -e 's|.*:||' -e 's|/.*||')
 [ -z "$DB_PORT" ] && DB_PORT=5432
-until nc -z -v -w30 $DB_HOST $DB_PORT; do sleep 2; done
 
-# ติดตั้งและ Build
-echo "Running evershop install & build..."
+echo "Waiting for database at $DB_HOST:$DB_PORT..."
+until nc -z -v -w30 $DB_HOST $DB_PORT; do 
+  echo "Database not ready, retrying..."
+  sleep 2
+done
+echo "Database is up!"
+
+# รัน Install (รวดเร็ว)
+echo "Ensuring EverShop is installed..."
 npx evershop install || echo "Install skipped."
-npx evershop build
 
-# บังคับสร้าง Admin User ด้วยวิธีที่มั่นใจที่สุด
-echo "Ensuring admin user: admin@admin.com"
-# เราจะพยายามสร้างใหม่ทับของเดิมถ้าทำได้ หรือแจ้งเตือนถ้ามีอยู่แล้ว
-npx evershop user:create --email "admin@admin.com" --password "password123" --full_name "Admin" || echo "Admin check finished."
+# สร้าง/ตรวจสอบ Admin User
+echo "Ensuring admin user exists..."
+npx evershop user:create --email "admin@admin.com" --password "password123" --full_name "Admin" || echo "Admin check done."
 
 echo "Starting EverShop server on port $PORT..."
-# ใช้ exec เพื่อให้แอปเป็น Process หลักและรับค่า Environment ได้ครบถ้วน
 exec npm run start
