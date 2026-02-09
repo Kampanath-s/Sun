@@ -16,17 +16,18 @@ until nc -z -v -w30 $PGHOST $PGPORT; do
 done
 echo "Database is up!"
 
-# ตรวจสอบว่าต้องติดตั้งระบบหรือไม่
+# ในรอบนี้เราจะบังคับให้รัน install เพื่อให้แน่ใจว่า schema ถูกต้อง
 echo "Running evershop install..."
-npx evershop install || echo "EverShop might already be installed, proceeding..."
+npx evershop install || echo "Install might have skipped some steps, continuing..."
 
-# รัน Build อีกครั้งใน Runtime เพื่อให้แน่ใจว่า path ถูกต้อง
+# รัน Build เพื่อความชัวร์
 echo "Running evershop build..."
 npx evershop build
 
-# สร้าง User ถ้ายังไม่มี
-echo "Ensuring admin user exists..."
-npx evershop user:create -n "Admin User" -e "admin@admin.com" -p "password123" || echo "Admin user might already exist."
+# พยายามสร้าง Admin User
+# เราจะใช้คำสั่ง user:create และไม่สนใจถ้ามันมีอยู่แล้ว
+echo "Creating admin user: admin@admin.com / password123"
+npx evershop user:create -n "Admin" -e "admin@admin.com" -p "password123" || echo "User creation finished (might already exist)."
 
 # เริ่มแอปพลิเคชัน
 echo "Starting EverShop server on port $PORT..."
