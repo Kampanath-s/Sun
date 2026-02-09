@@ -1,12 +1,10 @@
 #!/bin/sh
 
-echo "=== EverShop Final Check Entrypoint ==="
+echo "=== EverShop HARD RESET Entrypoint (v7) ==="
 
-# บังคับค่า JWT_SECRET ในระดับ OS
 export JWT_SECRET="ever-shop-stable-secret-key-2026-manus"
 export NODE_TLS_REJECT_UNAUTHORIZED=0
 
-# ตรวจสอบ DATABASE_URL
 if [ -z "$DATABASE_URL" ]; then
   export DATABASE_URL="postgres://$PGUSER:$PGPASSWORD@$PGHOST:$PGPORT/$PGDATABASE"
 fi
@@ -15,21 +13,23 @@ fi
 DB_HOST=$(echo $DATABASE_URL | sed -e 's|.*@||' -e 's|/.*||' -e 's|:.*||')
 DB_PORT=$(echo $DATABASE_URL | sed -e 's|.*:||' -e 's|/.*||')
 [ -z "$DB_PORT" ] && DB_PORT=5432
+until nc -z -v -w30 $DB_HOST $DB_PORT; do sleep 2; done
 
-echo "Waiting for database at $DB_HOST:$DB_PORT..."
-until nc -z -v -w30 $DB_HOST $DB_PORT; do 
-  echo "Database not ready, retrying..."
-  sleep 2
-done
-echo "Database is up!"
+# ขั้นตอนสำคัญ: ล้างฐานข้อมูลทิ้งทั้งหมด
+echo "PERFORMING DATABASE HARD RESET..."
+node reset_db.js || echo "Reset failed or already clean."
 
-# รัน Install (รวดเร็ว)
-echo "Ensuring EverShop is installed..."
-npx evershop install || echo "Install skipped."
+# รัน Install ใหม่บนฐานข้อมูลที่ว่างเปล่า
+echo "Running fresh evershop install..."
+npx evershop install
 
-# สร้าง/ตรวจสอบ Admin User
-echo "Ensuring admin user exists..."
-npx evershop user:create --email "admin@admin.com" --password "password123" --full_name "Admin" || echo "Admin check done."
+# รัน Build
+echo "Running evershop build..."
+npx evershop build
 
-echo "Starting EverShop server on port $PORT..."
+# สร้าง Admin User ใหม่เอี่ยม
+echo "Creating fresh admin user: admin@admin.com"
+npx evershop user:create --email "admin@admin.com" --password "password123" --full_name "Admin"
+
+echo "Starting EverShop server..."
 exec npm run start
